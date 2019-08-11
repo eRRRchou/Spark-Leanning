@@ -1,2 +1,0 @@
-# eRRRchou
-a rookie

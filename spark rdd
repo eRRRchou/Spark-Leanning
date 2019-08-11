@@ -1,0 +1,117 @@
+Transformation
+val rdd1 = sc.parallelize(List(5,6,4,7,3,8,2,9,1,10)) //创建rdd
+val rdd2 = sc.parallelize(List(5,6,4,7,3,8,2,9,1,10)).map(*2).sortBy(x=>x,true) //将集合X2并排序
+val rdd3 = rdd2.filter( >10) //过滤大于10的数字
+val rdd2 = sc.parallelize(List(5,6,4,7,3,8,2,9,1,10)).map(*2).sortBy(x=>x+"",true) //将集合X2后转成字符串
+val rdd2 = sc.parallelize(List(5,6,4,7,3,8,2,9,1,10)).map(*2).sortBy(x=>x.toString,true)
+
+val rdd4 = sc.parallelize(Array(“a b c”, “d e f”, “h i j”))
+rdd4.flatMap(_.split(’ ')).collect //先按照空格切分在压平
+
+val rdd5 = sc.parallelize(List(List(“a b c”, “a b b”),List(“e f g”, “a f g”), List(“h i j”, “a a b”)))
+
+List(“a b c”, “a b b”) =List(“a”,“b”,))
+
+rdd5.flatMap(.flatMap(.split(" "))).collect//先切里面的集合在压平在压平
+
+union求并集，注意类型要一致
+val rdd6 = sc.parallelize(List(5,6,4,7))
+val rdd7 = sc.parallelize(List(1,2,3,4))
+val rdd8 = rdd6.union(rdd7)
+rdd8.distinct.sortBy(x=>x).collect
+
+intersection求交集
+val rdd9 = rdd6.intersection(rdd7)
+
+准备数据
+
+val rdd1 = sc.parallelize(List((“tom”, 1), (“jerry”, 2), (“kitty”, 3)))
+val rdd2 = sc.parallelize(List((“jerry”, 9), (“tom”, 8), (“shuke”, 7)))
+
+#oin
+val rdd3 = rdd1.join(rdd2)
+val rdd3 = rdd1.leftOuterJoin(rdd2)
+val rdd3 = rdd1.rightOuterJoin(rdd2)
+
+groupByKey
+val rdd3 = rdd1 union rdd2
+rdd3.groupByKey
+rdd3.groupByKey.map(x=>(x._1,x._2.sum))
+
+WordCount, 第二个效率低
+sc.textFile("/root/words.txt").flatMap(x=>x.split(" ")).map((,1)).reduceByKey(+).sortBy(.2,false).collect
+sc.textFile("/root/words.txt").flatMap(x=>x.split(" ")).map((,1)).groupByKey.map(t=>(t._1, t._2.sum)).collect
+
+cogroup
+val rdd1 = sc.parallelize(List((“tom”, 1), (“tom”, 2), (“jerry”, 3), (“kitty”, 2)))
+val rdd2 = sc.parallelize(List((“jerry”, 2), (“tom”, 1), (“shuke”, 2)))
+val rdd3 = rdd1.cogroup(rdd2)
+val rdd4 = rdd3.map(t=>(t._1, t._2._1.sum + t._2._2.sum))
+
+cartesian笛卡尔积
+val rdd1 = sc.parallelize(List(“tom”, “jerry”))
+val rdd2 = sc.parallelize(List(“tom”, “kitty”, “shuke”))
+val rdd3 = rdd1.cartesian(rdd2)
+
+Spark action
+val rdd1 = sc.parallelize(List(1,2,3,4,5), 2)
+
+#collect
+rdd1.collect
+
+#reduce
+val rdd2 = rdd1.reduce(+)
+
+#count
+rdd1.count
+
+#top
+rdd1.top(2)
+
+#take
+rdd1.take(2)
+
+#first(similer to take(1))
+rdd1.first
+
+#takeOrdered
+
+rdd1.takeOrdered(3)
+
+map(func)	Return a new distributed dataset formed by passing each element of the source through a function func.
+
+filter(func)	Return a new dataset formed by selecting those elements of the source on which func returns true.
+
+flatMap(func)	Similar to map, but each input item can be mapped to 0 or more output items (so func should return a Seq rather than a single item).
+
+mapPartitions(func)	Similar to map, but runs separately on each partition (block) of the RDD, so func must be of type Iterator => Iterator when running on an RDD of type T.
+
+mapPartitionsWithIndex(func)Similar to mapPartitions, but also provides func with an integer value representing the index of the partition, so func must be of type (Int, Iterator) => Iterator when running on an RDD of type T.
+
+sample(withReplacement, fraction, seed)Sample a fraction fraction of the data, with or without replacement, using a given random number generator seed.
+
+union(otherDataset)	Return a new dataset that contains the union of the elements in the source dataset and the argument.
+
+intersection(otherDataset)	Return a new RDD that contains the intersection of elements in the source dataset and the argument.
+
+distinct([numTasks]))	Return a new dataset that contains the distinct elements of the source dataset.
+groupByKey([numTasks])	When called on a dataset of (K, V) pairs, returns a dataset of (K, Iterable) pairs.
+
+reduceByKey(func, [numTasks])	When called on a dataset of (K, V) pairs, returns a dataset of (K, V) pairs where the values for each key are aggregated using the given reduce function func, which must be of type (V,V) => V. Like in groupByKey, the number of reduce tasks is configurable through an optional second argument.
+
+aggregateByKey(zeroValue)(seqOp, combOp, [numTasks])When called on a dataset of (K, V) pairs, returns a dataset of (K, U) pairs where the values for each key are aggregated using the given combine functions and a neutral “zero” value. Allows an aggregated value type that is different than the input value type, while avoiding unnecessary allocations. Like in groupByKey, the number of reduce tasks is configurable through an optional second argument.
+
+sortByKey([ascending], [numTasks])	When called on a dataset of (K, V) pairs where K implements Ordered, returns a dataset of (K, V) pairs sorted by keys in ascending or descending order, as specified in the boolean ascending argument.
+
+join(otherDataset, [numTasks])	When called on datasets of type (K, V) and (K, W), returns a dataset of (K, (V, W)) pairs with all pairs of elements for each key. Outer joins are supported through leftOuterJoin, rightOuterJoin, and fullOuterJoin.
+
+cogroup(otherDataset, [numTasks])	When called on datasets of type (K, V) and (K, W), returns a dataset of (K, (Iterable, Iterable)) tuples. This operation is also called groupWith.
+cartesian(otherDataset)	When called on datasets of types T and U, returns a dataset of (T, U) pairs (all pairs of elements).
+
+pipe(command, [envVars])	Pipe each partition of the RDD through a shell command, e.g. a Perl or bash script. RDD elements are written to the process’s stdin and lines output to its stdout are returned as an RDD of strings.
+
+coalesce(numPartitions)	Decrease the number of partitions in the RDD to numPartitions. Useful for running operations more efficiently after filtering down a large dataset.
+
+repartition(numPartitions)	Reshuffle the data in the RDD randomly to create either more or fewer partitions and balance it across them. This always shuffles all data over the network.
+
+repartitionAndSortWithinPartitions(partitioner)	Repartition the RDD according to the given partitioner and, within each resulting partition, sort records by their keys. This is more efficient than calling repartition and then sorting within each partition because it can push the sorting down into the shuffle machinery.
