@@ -7,7 +7,7 @@
 * 数据的来源有Kafka，Flume和Tcp等等。
 * 可以通过一些functions来处理，可以将处理后的数据推送到文件系统，数据库和实时仪表并在中间使用Spark机器学习和图计算。
 
-![火花流](.gitimg\streaming-arch-1569418157901.png)
+![火花流](.gitimg/streaming-arch-1569418157901.png)
 
 * 实际上是在内部将Dstream转成RDD在使用SparkAPI计算
 
